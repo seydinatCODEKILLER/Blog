@@ -32,7 +32,9 @@ const Header = () => {
           <FaMoon />
         </Button>
         <Link to="/connexion">
-          <Button gradientDuoTone="purpleToBlue">Connexion</Button>
+          <Button gradientDuoTone="purpleToBlue" outline>
+            Connexion
+          </Button>
         </Link>
         <Navbar.Toggle />
       </div>
