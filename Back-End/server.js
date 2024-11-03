@@ -7,13 +7,12 @@ const port = 3000;
 
 dotenv.config();
 const app = express();
-
-//Middleware
 app.use(express.json());
 
 //Routes
 app.use("/api/auth", authRouter);
 
+//Middleware
 app.use(errorHandlerMiddleware);
 
 //Start server
