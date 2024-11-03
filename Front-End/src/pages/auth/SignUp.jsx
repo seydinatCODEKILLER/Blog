@@ -1,8 +1,60 @@
 /* eslint-disable react/no-unescaped-entities */
-import { Button, Label, TextInput } from "flowbite-react";
-import { Link } from "react-router-dom";
+import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
+import { Link, useNavigate } from "react-router-dom";
 import { LuUser2, LuMail, LuLock } from "react-icons/lu";
+import { useState } from "react";
 const SignUp = () => {
+  //State...
+
+  const [formData, setFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const navigate = useNavigate();
+
+  //Handle Function..
+
+  const validateForm = () => {
+    const { username, email, password } = formData;
+    if (!username || !email || !password) {
+      setErrorMessage("Please fill out all fields");
+      return false;
+    }
+    return true;
+  };
+
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData({ ...formData, [id]: value.trim() });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    if (!validateForm()) return;
+    setLoading(true);
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+      const data = await response.json();
+      if (data.success === false) {
+        return setErrorMessage(data.message);
+      }
+      navigate("/connexion");
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen mt-20">
       <div className="p-3 max-w-4xl mx-auto flex flex-col md:flex-row gap-5 md:items-center">
@@ -23,10 +75,11 @@ const SignUp = () => {
         </div>
         {/* Right */}
         <div className="flex-1">
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
               <Label value="username" />
               <TextInput
+                onChange={handleChange}
                 type="text"
                 placeholder="Your username"
                 id="username"
@@ -36,6 +89,7 @@ const SignUp = () => {
             <div className="flex flex-col gap-2">
               <Label value="email" />
               <TextInput
+                onChange={handleChange}
                 type="eamil"
                 placeholder="Your email"
                 id="email"
@@ -45,6 +99,7 @@ const SignUp = () => {
             <div className="flex flex-col gap-2">
               <Label value="password" />
               <TextInput
+                onChange={handleChange}
                 type="password"
                 placeholder="Your password"
                 id="password"
@@ -55,8 +110,16 @@ const SignUp = () => {
               type="submit"
               gradientDuoTone="purpleToPink"
               className="w-full mt-3"
+              disabled={loading}
             >
-              S'inscrire
+              {loading ? (
+                <div className="flex items-center gap-3">
+                  <Spinner size="sm" />
+                  <span>Chargement...</span>
+                </div>
+              ) : (
+                "S'inscrire"
+              )}
             </Button>
           </form>
           <div className="mt-5">
@@ -64,6 +127,7 @@ const SignUp = () => {
             <Link to="/connexion" className="text-blue-500">
               Se connecter
             </Link>
+            {errorMessage && <Alert color="failure">{errorMessage}</Alert>}
           </div>
         </div>
       </div>
