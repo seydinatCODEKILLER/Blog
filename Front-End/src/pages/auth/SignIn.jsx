@@ -2,21 +2,27 @@
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import { Link, useNavigate } from "react-router-dom";
 import { LuMail, LuLock } from "react-icons/lu";
+import {
+  SignInSuccess,
+  SignInStart,
+  SignInFailure,
+} from "../../redux/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
+
 const SignIn = () => {
   //State...
-
   const [formData, setFormData] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const { loading, error: errorMessage } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   //Handle Function..
 
   const validateForm = () => {
     const { email, password } = formData;
     if (!email || !password) {
-      setErrorMessage("Please fill out all fields");
+      dispatch(SignInFailure("Please fill out all fields"));
       return false;
     }
     return true;
@@ -29,9 +35,8 @@ const SignIn = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage(null);
     if (!validateForm()) return;
-    setLoading(true);
+    dispatch(SignInStart());
     try {
       const response = await fetch("/api/auth/connexion", {
         method: "POST",
@@ -45,13 +50,12 @@ const SignIn = () => {
       }
       const data = await response.json();
       if (data.success === false) {
-        return setErrorMessage(data.message);
+        return dispatch(SignInFailure(data.message));
       }
+      dispatch(SignInSuccess(data));
       navigate("/");
     } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
+      dispatch(SignInFailure(error.message));
     }
   };
 
@@ -80,13 +84,13 @@ const SignIn = () => {
               <Label value="email" />
               <TextInput
                 onChange={handleChange}
-                type="eamil"
+                type="email"
                 placeholder="Your email"
                 id="email"
                 rightIcon={LuMail}
               />
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 mt-2">
               <Label value="password" />
               <TextInput
                 onChange={handleChange}
@@ -113,8 +117,8 @@ const SignIn = () => {
             </Button>
           </form>
           <div className="mt-5">
-            <span>Vous n'avez de compte ? </span>
-            <Link to="/inscription" className="text-blue-500">
+            <span>Vous n'avez pas de compte ? </span>
+            <Link to="/connexion" className="text-blue-500">
               S'inscrire
             </Link>
             {errorMessage && <Alert color="failure">{errorMessage}</Alert>}

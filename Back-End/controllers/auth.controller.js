@@ -15,7 +15,7 @@ export const register = async (req, res, next) => {
   ) {
     next(errorHandler(400, "Please fill in all fields."));
   }
-  const hashPassword = bcrypt.hashSync(password, 10);
+  const hashPassword = await bcrypt.hash(password, 10);
   const newUser = new User({
     username,
     email,
@@ -33,17 +33,17 @@ export const register = async (req, res, next) => {
 export const connexion = async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password || email === "" || password === "") {
-    next(errorHandler(400, "Please fill in all fields."));
+    return next(errorHandler(400, "Please fill in all fields."));
   }
 
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      next(errorHandler(401, "User not found"));
+      return next(errorHandler(401, "User not found"));
     }
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      next(errorHandler(401, "Invalid password"));
+      return next(errorHandler(401, "Invalid password"));
     }
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "1d",
