@@ -45,17 +45,49 @@ export const connexion = async (req, res, next) => {
     if (!isValidPassword) {
       return next(errorHandler(401, "Invalid password"));
     }
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1d",
-    });
-    const { password: pass, ...rest } = user._doc;
-    res
-      .status(200)
-      .cookie("access_token", token, {
-        httpOnly: true,
-      })
-      .json(rest);
+    getAccessUser(user, res);
   } catch (error) {
     next(error);
   }
+};
+
+export const googleAuth = async (req, res, next) => {
+  const { username, email, googlePhotoUrl } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      getAccessUser(user, res);
+    } else {
+      const generateRandomPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = await bcrypt.hash(generateRandomPassword, 10);
+      const newUser = new User({
+        username:
+          username.toLowerCase().split(" ").join("") +
+          Math.random().toString(9).slice(-4),
+        email,
+        password: hashedPassword,
+        profilPicture: googlePhotoUrl,
+      });
+      await newUser.save();
+      getAccessUser(newUser, res);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAccessUser = (user, response) => {
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
+    expiresIn: "1d",
+  });
+  const { password: pass, ...rest } = user._doc;
+  return response
+    .status(200)
+    .cookie("access_token", token, {
+      httpOnly: true,
+    })
+    .json(rest);
 };

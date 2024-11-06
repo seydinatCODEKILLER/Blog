@@ -3,6 +3,7 @@ import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
 import { Link, useNavigate } from "react-router-dom";
 import { LuUser2, LuMail, LuLock } from "react-icons/lu";
 import { useState } from "react";
+import Oauth from "../../components/Oauth";
 const SignUp = () => {
   //State...
 
@@ -121,6 +122,7 @@ const SignUp = () => {
                 "S'inscrire"
               )}
             </Button>
+            <Oauth />
           </form>
           <div className="mt-5">
             <span>tu as déja un compte ? </span>

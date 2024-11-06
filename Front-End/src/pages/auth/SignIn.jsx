@@ -9,6 +9,7 @@ import {
 } from "../../redux/user/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useState } from "react";
+import Oauth from "../../components/Oauth";
 
 const SignIn = () => {
   //State...
@@ -103,7 +104,7 @@ const SignIn = () => {
             <Button
               type="submit"
               gradientDuoTone="purpleToPink"
-              className="w-full mt-3"
+              className="w-full mt-3 mb-3"
               disabled={loading}
             >
               {loading ? (
@@ -115,6 +116,7 @@ const SignIn = () => {
                 "Se connecter"
               )}
             </Button>
+            <Oauth />
           </form>
           <div className="mt-5">
             <span>Vous n'avez pas de compte ? </span>
