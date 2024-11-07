@@ -1,10 +1,20 @@
-import { Button, Navbar, TextInput } from "flowbite-react";
+import { Avatar, Button, Dropdown, Navbar, TextInput } from "flowbite-react";
 import { Link, useLocation } from "react-router-dom";
 import { AiOutlineSearch } from "react-icons/ai";
-import { FaMoon } from "react-icons/fa";
+import { FaMoon, FaSignOutAlt, FaUserCircle, FaSun } from "react-icons/fa";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleTheme } from "../redux/theme/themeSlice";
 
 const Header = () => {
   const path = useLocation().pathname;
+  const { currentUser } = useSelector((state) => state.user);
+  const { theme } = useSelector((state) => state.theme);
+  const dispatch = useDispatch();
+
+  const handleTheme = () => {
+    dispatch(toggleTheme());
+  };
+
   return (
     <Navbar className="border-b-1">
       <Link
@@ -28,14 +38,45 @@ const Header = () => {
         <AiOutlineSearch />
       </Button>
       <div className="flex items-center gap-3 md:order-2">
-        <Button className="w-12 h-12 hidden sm:block" color="gray" pill>
-          <FaMoon />
+        <Button
+          className="w-12 h-12 hidden sm:block"
+          color="gray"
+          pill
+          onClick={handleTheme}
+        >
+          {theme === "light" ? <FaMoon /> : <FaSun />}
         </Button>
-        <Link to="/connexion">
-          <Button gradientDuoTone="purpleToBlue" outline>
-            Connexion
-          </Button>
-        </Link>
+        {currentUser ? (
+          <Dropdown
+            arrowIcon={false}
+            inline
+            label={
+              <Avatar alt="user" img={currentUser.profilePicture} rounded />
+            }
+          >
+            <Dropdown.Header>
+              <span className="block text-sm font-semibold">
+                @{currentUser.username}
+              </span>
+              <span className="block text-sm truncate font-semibold">
+                {currentUser.email}
+              </span>
+            </Dropdown.Header>
+            <Link to={"/dashboard?tab=profile"}>
+              <Dropdown.Item icon={FaUserCircle}>Profile</Dropdown.Item>
+            </Link>
+            <Link to={"/deconnexion"}>
+              <Dropdown.Item icon={FaSignOutAlt}>Deconnexion</Dropdown.Item>
+            </Link>
+          </Dropdown>
+        ) : (
+          <Link to="/connexion">
+            <Button gradientDuoTone="purpleToBlue" outline>
+              Connexion
+            </Button>
+          </Link>
+        )}
+
         <Navbar.Toggle />
       </div>
       <Navbar.Collapse>
