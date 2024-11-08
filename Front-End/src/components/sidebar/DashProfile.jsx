@@ -1,15 +1,43 @@
 import { Button, TextInput } from "flowbite-react";
 import { useSelector } from "react-redux";
 import { LuUser2, LuMail, LuLock } from "react-icons/lu";
+import { useEffect, useRef, useState } from "react";
 const DashProfile = () => {
   const { currentUser } = useSelector((state) => state.user);
+  const [imageFile, setImageFile] = useState(null);
+  const [imageFileUrl, setImageFileUrl] = useState(null);
+  const filePickerRef = useRef();
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImageFileUrl(URL.createObjectURL(file));
+    }
+  };
+  useEffect(() => {
+    if (imageFile) {
+      uploadImage();
+    }
+  }, [imageFile]);
+  const uploadImage = async () => {};
   return (
     <div className="max-w-xl w-full p-3 mx-auto">
       <h1 className="font-semibold text-3xl my-7 text-center">Profile</h1>
       <form className="flex flex-col gap-4">
-        <div className="self-center h-32 w-32 cursor-pointer">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          ref={filePickerRef}
+          hidden
+        />
+        <div
+          className="self-center h-32 w-32 cursor-pointer"
+          onClick={() => filePickerRef.current.click()}
+        >
           <img
-            src={currentUser.profilPicture}
+            src={imageFileUrl || currentUser.profilPicture}
             alt="user"
             className="w-full h-full object-cover border-2 border-gray-100 rounded-full"
           />
