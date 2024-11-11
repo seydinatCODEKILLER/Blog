@@ -1,12 +1,17 @@
-import { Button, TextInput } from "flowbite-react";
+import { Button, Spinner, TextInput } from "flowbite-react";
 import { useSelector, useDispatch } from "react-redux";
 import { LuUser2, LuMail, LuLock } from "react-icons/lu";
 import { useRef, useState } from "react";
-import { updateProfilePicture } from "../../redux/user/userSlice";
+import {
+  updateProfilePicture,
+  SignInFailure,
+  SignInSuccess,
+  SignInStart,
+} from "../../redux/user/userSlice";
 
 const DashProfile = () => {
   const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, loading } = useSelector((state) => state.user);
   const [imageFile, setImageFile] = useState(null);
   const [imageFileUrl, setImageFileUrl] = useState(currentUser.profilPicture);
   const filePickerRef = useRef();
@@ -19,10 +24,42 @@ const DashProfile = () => {
     }
   };
 
+  const updateInfoUser = async (e) => {
+    e.preventDefault();
+    const username = e.target.username.value;
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    const updateUser = {
+      username: username,
+      email: email,
+      password: password,
+    };
+    dispatch(SignInStart());
+    try {
+      const response = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateUser),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        return dispatch(SignInFailure(data.message));
+      }
+      dispatch(SignInSuccess(data));
+    } catch (error) {
+      dispatch(SignInFailure(error.message));
+    }
+  };
+
   const uploadImage = async () => {
     const formData = new FormData();
     formData.append("profilPicture", imageFile);
     formData.append("userId", currentUser._id);
+
+    dispatch(SignInStart());
 
     try {
       const response = await fetch(
@@ -82,7 +119,7 @@ const DashProfile = () => {
       </form>
 
       {/* Formulaire de mise à jour des autres informations utilisateur */}
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={updateInfoUser}>
         <TextInput
           type="text"
           defaultValue={currentUser.username}
@@ -105,7 +142,14 @@ const DashProfile = () => {
           rightIcon={LuLock}
         />
         <Button type="submit" gradientDuoTone="purpleToBlue" outline>
-          Mettre à jour les informations
+          {loading ? (
+            <div className="flex items-center gap-3">
+              <Spinner size="sm" />
+              <span>Chargement...</span>
+            </div>
+          ) : (
+            <span>Mettre à jour les informations</span>
+          )}
         </Button>
       </form>
 
