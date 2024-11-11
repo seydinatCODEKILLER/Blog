@@ -81,7 +81,7 @@ export const googleAuth = async (req, res, next) => {
 
 const getAccessUser = (user, response) => {
   const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET_KEY, {
-    expiresIn: "1d",
+    expiresIn: "1h",
   });
   const { password: pass, ...rest } = user._doc;
   return response

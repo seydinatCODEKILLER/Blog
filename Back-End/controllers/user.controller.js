@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import User from "../models/user.model.js";
+import fs from "fs";
 import { errorHandler } from "../utils/error.js";
+import path from "path";
 
 export const updateUser = async (req, res, next) => {
   if (req.user.userId !== req.params.id) {
@@ -45,5 +47,55 @@ export const updateUser = async (req, res, next) => {
     } catch (error) {
       next(error);
     }
+  }
+};
+
+export const uploadProfileUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const newImagePath = req.file.path;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(errorHandler(400, "User not found"));
+    }
+
+    // Supprimer l'ancienne photo de profil si elle existe
+    if (user.profilPicture) {
+      const oldImagePath = path.join(
+        path.resolve(),
+        "upload",
+        "profile",
+        path.basename(user.profilPicture)
+      );
+
+      if (fs.existsSync(oldImagePath)) {
+        try {
+          fs.unlinkSync(oldImagePath);
+          console.log("Ancienne photo supprimée avec succès.");
+        } catch (unlinkError) {
+          console.error(
+            "Erreur lors de la suppression de l'ancienne image :",
+            unlinkError
+          );
+        }
+      }
+    }
+
+    // Création de l'URL publique de la nouvelle image
+    const imageUrl = `${process.env.BACKEND_URL}/upload/profile/${path
+      .basename(newImagePath)
+      .replace(/\\/g, "/")}`;
+
+    // Mise à jour de l'utilisateur
+    user.profilPicture = imageUrl;
+    await user.save();
+
+    res.json({
+      message: "Photo de profil mise à jour avec succès",
+      imageUrl: imageUrl,
+    });
+  } catch (error) {
+    next(error);
   }
 };
