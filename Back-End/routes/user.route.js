@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteUser,
   updateUser,
   uploadProfileUser,
 } from "../controllers/user.controller.js";
@@ -15,5 +16,6 @@ router.post(
   upload.single("profilPicture"),
   uploadProfileUser
 );
+router.delete("/delete/:id", verifyToken, deleteUser);
 
 export default router;
